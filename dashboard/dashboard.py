@@ -42,61 +42,57 @@ st.sidebar.header("Pilih Opsi Analisis")
 # Pilihan visualisasi
 options = st.sidebar.selectbox(
     "Pilih visualisasi:",
-    ("Jumlah Penyewaan per Bulan", "Penyewaan Berdasarkan Musim", "Penyewaan Berdasarkan Hari dalam Minggu")
+    ("Analisis Penyewaan", "Grafik Penyewaan")
 )
 
-# Fungsi untuk menampilkan jumlah penyewaan per bulan
-def monthly_rentals():
-    monthly_rent_df = day_df.groupby('month')['count'].sum().reindex(
-        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        fill_value=0
-    )
-    
-    # Menampilkan data bulanan
-    st.write("Data Bulanan:", monthly_rent_df)
+# Fungsi untuk menampilkan analisis penyewaan
+def rental_analysis():
+    # Pertanyaan 1: Berapa persen total penyewa registered dan penyewa casual?
+    total_rentals = day_df['count'].sum()
+    registered_rentals = day_df['registered'].sum()
+    casual_rentals = day_df['casual'].sum()
 
+    percent_registered = (registered_rentals / total_rentals) * 100
+    percent_casual = (casual_rentals / total_rentals) * 100
+
+    st.subheader("Persentase Total Penyewa")
+    st.write(f"Total Penyewa: {total_rentals}")
+    st.write(f"Persentase Registered User: {percent_registered:.2f}%")
+    st.write(f"Persentase Casual User: {percent_casual:.2f}%")
+
+    # Pertanyaan 2: Pada bulan apa penyewaan sepeda paling banyak?
+    monthly_rent_df = day_df.groupby('month')['count'].sum()
+    max_month = monthly_rent_df.idxmax()
+    max_rentals = monthly_rent_df.max()
+
+    st.subheader("Bulan dengan Penyewaan Tertinggi")
+    st.write(f"Bulan: {max_month} dengan jumlah penyewaan {max_rentals}")
+
+    # Pertanyaan 3: Apakah cuaca berperan terhadap jumlah peminjaman sepeda?
+    weather_rent_df = day_df.groupby('weather_cond')['count'].sum().reset_index()
+    
+    # Menampilkan pengaruh cuaca
+    st.subheader("Pengaruh Cuaca terhadap Jumlah Peminjaman Sepeda")
+    st.write(weather_rent_df)
+
+    # Plot pengaruh cuaca
     plt.figure(figsize=(10, 5))
-    sns.barplot(x=monthly_rent_df.index, y=monthly_rent_df.values, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Bulan")
-    plt.xlabel("Bulan")
+    sns.barplot(x='weather_cond', y='count', data=weather_rent_df, palette='viridis')
+    plt.title("Jumlah Penyewaan Sepeda Berdasarkan Kondisi Cuaca")
+    plt.xlabel("Kondisi Cuaca")
     plt.ylabel("Jumlah Penyewaan")
     st.pyplot(plt)
 
-# Fungsi untuk menampilkan penyewaan berdasarkan musim
-def season_rentals():
-    season_rent_df = day_df.groupby('season')['count'].sum().reset_index()
-    
-    # Menampilkan data per musim
-    st.write("Data Musiman:", season_rent_df)
+# Fungsi untuk menampilkan grafik penyewaan
+def rental_graphs():
+    # Tambahkan fungsi grafik di sini sesuai kebutuhan
+    pass
 
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x='season', y='count', data=season_rent_df, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Musim")
-    plt.xlabel("Musim")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)
-
-# Fungsi untuk menampilkan penyewaan berdasarkan hari dalam minggu
-def weekday_rentals():
-    weekday_rent_df = day_df.groupby('weekday')['count'].sum().reset_index()
-    
-    # Menampilkan data per hari
-    st.write("Data Hari dalam Minggu:", weekday_rent_df)
-
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x='weekday', y='count', data=weekday_rent_df, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Hari dalam Minggu")
-    plt.xlabel("Hari dalam Minggu")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)
-
-# Menampilkan visualisasi berdasarkan pilihan
-if options == "Jumlah Penyewaan per Bulan":
-    monthly_rentals()
-elif options == "Penyewaan Berdasarkan Musim":
-    season_rentals()
-elif options == "Penyewaan Berdasarkan Hari dalam Minggu":
-    weekday_rentals()
+# Menampilkan analisis atau grafik berdasarkan pilihan
+if options == "Analisis Penyewaan":
+    rental_analysis()
+elif options == "Grafik Penyewaan":
+    rental_graphs()
 
 # Menampilkan informasi data
 st.sidebar.subheader("Informasi Data")
