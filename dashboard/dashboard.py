@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Load your dataset (adjust the path as needed)
-data_path = "day_clean.csv"
+data_path = "dashboard/day_clean.csv"
 day_df = pd.read_csv(data_path)
 
 # Data Preprocessing
