@@ -56,7 +56,7 @@ def monthly_rentals():
     st.write("Data Bulanan:", monthly_rent_df)
 
     plt.figure(figsize=(10, 5))
-    sns.barplot(x=monthly_rent_df.index, y=monthly_rent_df.values, color='blue')  # Menggunakan warna tetap
+    sns.barplot(x=monthly_rent_df.index, y=monthly_rent_df.values, palette='viridis')
     plt.title("Jumlah Penyewaan Sepeda per Bulan")
     plt.xlabel("Bulan")
     plt.ylabel("Jumlah Penyewaan")
@@ -70,7 +70,7 @@ def season_rentals():
     st.write("Data Musiman:", season_rent_df)
 
     plt.figure(figsize=(10, 5))
-    sns.barplot(x='season', y='count', data=season_rent_df, color='blue')  # Menggunakan warna tetap
+    sns.barplot(x='season', y='count', data=season_rent_df, palette='viridis')
     plt.title("Jumlah Penyewaan Sepeda per Musim")
     plt.xlabel("Musim")
     plt.ylabel("Jumlah Penyewaan")
@@ -84,7 +84,7 @@ def weekday_rentals():
     st.write("Data Hari dalam Minggu:", weekday_rent_df)
 
     plt.figure(figsize=(10, 5))
-    sns.barplot(x='weekday', y='count', data=weekday_rent_df, color='blue')  # Menggunakan warna tetap
+    sns.barplot(x='weekday', y='count', data=weekday_rent_df, palette='viridis')
     plt.title("Jumlah Penyewaan Sepeda per Hari dalam Minggu")
     plt.xlabel("Hari dalam Minggu")
     plt.ylabel("Jumlah Penyewaan")
