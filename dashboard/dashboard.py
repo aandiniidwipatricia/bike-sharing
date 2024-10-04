@@ -1,96 +1,101 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# Load your dataset (adjust the path as needed)
-data_path = "path/to/your/bike_sharing_data.csv"  # Ganti dengan path dataset Anda
-day_df = pd.read_csv('dashboard/day_clean.csv')
+# Load dataset
+day_df = pd.read_csv("dashboard/day_clean.csv")  
 
-# Data Preprocessing
-day_df.rename(columns={
-    'dteday': 'dateday',
-    'yr': 'year',
-    'mnth': 'month',
-    'weathersit': 'weather_cond',
-    'cnt': 'count'
-}, inplace=True)
+# Sidebar untuk pemilihan filter
+st.sidebar.header("Filter Data")
+selected_year = st.sidebar.selectbox("Pilih Tahun", options=['All'] + list(day_df['year'].unique()))
+selected_month = st.sidebar.selectbox("Pilih Bulan", options=['All'] + list(day_df['month'].unique()))
+selected_weather = st.sidebar.selectbox("Pilih Kondisi Cuaca", options=['All'] + list(day_df['weather_condition'].unique()))
 
-# Convert numerical values to categorical
-day_df['month'] = day_df['month'].map({
-    1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
-    7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
-})
-day_df['season'] = day_df['season'].map({
-    1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'
-})
-day_df['weekday'] = day_df['weekday'].map({
-    0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
-})
-day_df['weather_cond'] = day_df['weather_cond'].map({
-    1: 'Clear/Partly Cloudy',
-    2: 'Misty/Cloudy',
-    3: 'Light Snow/Rain',
-    4: 'Severe Weather'
-})
+# Filter data berdasarkan input dari sidebar
+filtered_data = day_df.copy()
 
-# Sidebar for navigation
-st.sidebar.header("Pilih Opsi Analisis")
-options = st.sidebar.selectbox(
-    "Pilih visualisasi:",
-    ("Jumlah Penyewaan per Bulan", "Penyewaan Berdasarkan Musim", "Penyewaan Berdasarkan Hari dalam Minggu")
-)
+# Terapkan filter hanya jika opsi selain "All" dipilih
+if selected_year != 'All':
+    filtered_data = filtered_data[filtered_data['year'] == selected_year]
 
-# Function to display monthly rentals
-def monthly_rentals():
-    monthly_rent_df = day_df.groupby('month')['count'].sum().reindex(
-        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        fill_value=0
-    )
-    
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x=monthly_rent_df.index, y=monthly_rent_df.values, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Bulan")
-    plt.xlabel("Bulan")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)  # Menampilkan grafik
-    
-    plt.clf()  # Membersihkan figure setelah menampilkan
+if selected_month != 'All':
+    filtered_data = filtered_data[filtered_data['month'] == selected_month]
 
-# Function to display season rentals
-def season_rentals():
-    season_rent_df = day_df.groupby('season')['count'].sum().reset_index()
-    
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x='season', y='count', data=season_rent_df, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Musim")
-    plt.xlabel("Musim")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)  # Menampilkan grafik
-    
-    plt.clf()  # Membersihkan figure setelah menampilkan
+if selected_weather != 'All':
+    filtered_data = filtered_data[filtered_data['weather_condition'] == selected_weather]
 
-# Function to display weekday rentals
-def weekday_rentals():
-    weekday_rent_df = day_df.groupby('weekday')['count'].sum().reset_index()
-    
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x='weekday', y='count', data=weekday_rent_df, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda per Hari dalam Minggu")
-    plt.xlabel("Hari dalam Minggu")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)  # Menampilkan grafik
-    
-    plt.clf()  # Membersihkan figure setelah menampilkan
+# Tampilan di halaman utama
+st.title('Bike Rentals Dashboard')
+st.write(f"Menampilkan data untuk Tahun {selected_year}, Bulan {selected_month}, dan Cuaca {selected_weather}")
 
-# Display the selected visualization
-if options == "Jumlah Penyewaan per Bulan":
-    monthly_rentals()
-elif options == "Penyewaan Berdasarkan Musim":
-    season_rentals()
-elif options == "Penyewaan Berdasarkan Hari dalam Minggu":
-    weekday_rentals()
+# Rangkuman statistik data yang difilter
+st.header("Rangkuman Statistik")
+st.write(filtered_data.describe(include='all'))
 
-# Display data information
-st.sidebar.subheader("Informasi Data")
-st.sidebar.write(day_df.describe())
+# Visualisasi distribusi jumlah penyewaan berdasarkan hari kerja dan hari libur
+st.header("Distribusi Penyewaan Sepeda: Hari Kerja vs Hari Libur")
+comparison_df = filtered_data.groupby('workingday').agg({
+    'count': ['sum', 'mean']
+}).reset_index()
+
+# Membuat bar chart untuk total dan rata-rata penyewaan
+fig, ax = plt.subplots(figsize=(8, 6))
+
+# Bar chart total sewa
+colors = sns.color_palette('Set2', 2)
+ax.bar(comparison_df['workingday'].map({0: 'Hari Kerja', 1: 'Hari Libur'}), comparison_df['count']['sum'], color=colors)
+ax.set_title('Total Penyewaan Sepeda: Hari Kerja vs Hari Libur')
+ax.set_xlabel('Tipe Hari')
+ax.set_ylabel('Total Penyewaan')
+
+# Menambahkan angka di atas bar
+for i, v in enumerate(comparison_df['count']['sum']):
+    ax.text(i, v + 500, format(int(v), ','), ha='center')
+
+st.pyplot(fig)
+
+# Visualisasi distribusi penyewaan berdasarkan cuaca
+st.header("Distribusi Penyewaan Berdasarkan Kondisi Cuaca")
+weather_df = filtered_data.groupby('weather_condition').agg({
+    'count': 'sum'
+}).reset_index()
+
+fig, ax = plt.subplots(figsize=(8, 6))
+bars = ax.bar(weather_df['weather_condition'], weather_df['count'], color=sns.color_palette("Set2", len(weather_df)))
+ax.set_title('Total Penyewaan Berdasarkan Kondisi Cuaca')
+ax.set_xlabel('Kondisi Cuaca')
+ax.set_ylabel('Total Penyewaan')
+
+# Menambahkan angka di atas bar
+for bar in bars:
+    yval = bar.get_height()
+    ax.text(bar.get_x() + bar.get_width() / 2, yval + 500, format(int(yval), ','),
+            ha='center', va='bottom')
+
+st.pyplot(fig)
+
+# Visualisasi distribusi pengguna casual dan registered per tahun
+st.header("Total Penyewaan Pengguna Casual dan Registered per Tahun")
+yearly_counts = filtered_data.groupby('year').agg({
+    'casual': 'sum',
+    'registered': 'sum'
+}).reset_index()
+
+fig, ax = plt.subplots(figsize=(10, 6))
+bar_width = 0.35
+x = range(len(yearly_counts))
+
+# Plot batang untuk 'casual' dan 'registered'
+ax.bar(x, yearly_counts['casual'], width=bar_width, color='skyblue', label='Casual')
+ax.bar([p + bar_width for p in x], yearly_counts['registered'], width=bar_width, color='lightgreen', label='Registered')
+
+# Tambahkan label dan judul
+ax.set_xlabel('Tahun')
+ax.set_ylabel('Total Penyewaan')
+ax.set_title('Total Penyewaan Casual dan Registered per Tahun')
+ax.set_xticks([p + bar_width / 2 for p in x])
+ax.set_xticklabels(yearly_counts['year'])
+
+ax.legend()
+st.pyplot(fig)
