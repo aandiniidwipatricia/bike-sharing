@@ -14,7 +14,7 @@ import seaborn as sns
 import streamlit as st
 
 # Load dataset
-day_df = pd.read_csv("day_clean.csv")
+day_df = pd.read_csv("dashboard/day_clean.csv")
 
 # Data Preprocessing
 day_df.rename(columns={
