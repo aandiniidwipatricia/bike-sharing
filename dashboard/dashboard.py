@@ -10,7 +10,7 @@ day_df = pd.read_csv("dashboard/day_clean.csv")
 st.sidebar.header("Filter Data")
 selected_year = st.sidebar.selectbox("Pilih Tahun", options=['All'] + list(day_df['year'].unique()))
 selected_month = st.sidebar.selectbox("Pilih Bulan", options=['All'] + list(day_df['month'].unique()))
-selected_weather = st.sidebar.selectbox("Pilih Kondisi Cuaca", options=['All'] + list(day_df['weather_condition'].unique()))
+selected_weather = st.sidebar.selectbox("Pilih Kondisi Cuaca", options=['All'] + list(day_df['weather_cond'].unique()))
 
 # Filter data berdasarkan input dari sidebar
 filtered_data = day_df.copy()
