@@ -5,7 +5,7 @@ import seaborn as sns
 
 # Load your dataset (adjust the path as needed)
 data_path = "path/to/your/bike_sharing_data.csv"  # Ganti dengan path dataset Anda
-day_df = pd.read_csv('dashboard/day_clean.py')
+day_df = pd.read_csv('dashboard/day_clean.csv')
 
 # Data Preprocessing
 day_df.rename(columns={
