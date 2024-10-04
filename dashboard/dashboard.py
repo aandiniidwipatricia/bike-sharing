@@ -7,102 +7,98 @@ import streamlit as st
 sns.set(style='dark')
 
 # Menyiapkan data day_df
-day_df = pd.read_csv("dashboard/day_clean.csv")
+day_df = pd.read_csv("dashboard/day.csv")
 
-# Mengubah nama kolom
+# Menghapus kolom yang tidak diperlukan
+drop_col = ['windspeed']
+day_df.drop(columns=drop_col, inplace=True)
+
+# Mengubah nama judul kolom
 day_df.rename(columns={
     'dteday': 'dateday',
     'yr': 'year',
     'mnth': 'month',
     'weathersit': 'weather_cond',
-    'cnt': 'count',
-    'registered': 'registered',  
-    'casual': 'casual'           
+    'cnt': 'count'
 }, inplace=True)
 
 # Mengubah angka menjadi keterangan
-day_df['month'] = day_df['month'].map({
+month_map = {
     1: 'Jan', 2: 'Feb', 3: 'Mar', 4: 'Apr', 5: 'May', 6: 'Jun',
     7: 'Jul', 8: 'Aug', 9: 'Sep', 10: 'Oct', 11: 'Nov', 12: 'Dec'
-})
-day_df['season'] = day_df['season'].map({
+}
+season_map = {
     1: 'Spring', 2: 'Summer', 3: 'Fall', 4: 'Winter'
-})
-day_df['weekday'] = day_df['weekday'].map({
+}
+weekday_map = {
     0: 'Sun', 1: 'Mon', 2: 'Tue', 3: 'Wed', 4: 'Thu', 5: 'Fri', 6: 'Sat'
-})
-day_df['weather_cond'] = day_df['weather_cond'].map({
+}
+weather_map = {
     1: 'Clear/Partly Cloudy',
     2: 'Misty/Cloudy',
     3: 'Light Snow/Rain',
     4: 'Severe Weather'
-})
+}
 
-# Sidebar untuk memilih opsi analisis
-st.sidebar.header("Pilih Opsi Analisis")
+day_df['month'] = day_df['month'].map(month_map)
+day_df['season'] = day_df['season'].map(season_map)
+day_df['weekday'] = day_df['weekday'].map(weekday_map)
+day_df['weather_cond'] = day_df['weather_cond'].map(weather_map)
 
-# Pilihan visualisasi
-options = st.sidebar.selectbox(
-    "Pilih visualisasi:",
-    ("Analisis Penyewaan", "Grafik Penyewaan")
-)
+# Menyiapkan fungsi untuk membuat DataFrame yang berbeda
+def create_daily_rent_df(df):
+    return df.groupby(by='dateday').agg({'count': 'sum'}).reset_index()
 
-# Fungsi untuk menampilkan analisis penyewaan
-def rental_analysis():
-    # Pertanyaan 1: Berapa persen total penyewa registered dan penyewa casual?
-    total_rentals = day_df['count'].sum()
-    registered_rentals = day_df['registered'].sum()
-    casual_rentals = day_df['casual'].sum()
+def create_season_rent_df(df):
+    return df.groupby(by='season')[['registered', 'casual']].sum().reset_index()
 
-    percent_registered = (registered_rentals / total_rentals) * 100 if total_rentals > 0 else 0
-    percent_casual = (casual_rentals / total_rentals) * 100 if total_rentals > 0 else 0
+def create_monthly_rent_df(df):
+    monthly_rent_df = df.groupby(by='month').agg({'count': 'sum'})
+    ordered_months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+    return monthly_rent_df.reindex(ordered_months, fill_value=0)
 
-    st.subheader("Persentase Total Penyewa")
-    st.write(f"Total Penyewa: {total_rentals}")
-    st.write(f"Persentase Registered User: {percent_registered:.2f}%")
-    st.write(f"Persentase Casual User: {percent_casual:.2f}%")
+# Membuat komponen filter
+min_date = pd.to_datetime(day_df['dateday']).dt.date.min()
+max_date = pd.to_datetime(day_df['dateday']).dt.date.max()
+ 
+with st.sidebar:
+    st.image('your_image_url_here')  # Ganti dengan URL gambar Anda
+    st.title("Rental Bike Dashboard")
+    selected_season = st.selectbox("Select Season", day_df['season'].unique())
+    selected_month = st.selectbox("Select Month", month_map.values())
+    selected_date_range = st.date_input("Select Date Range", [min_date, max_date])
 
-    # Pertanyaan 2: Pada bulan apa penyewaan sepeda paling banyak?
-    monthly_rent_df = day_df.groupby('month')['count'].sum().reindex(
-        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        fill_value=0
-    )
-    
-    # Memeriksa apakah data bulanan kosong
-    if monthly_rent_df.sum() == 0:
-        st.warning("Tidak ada data penyewaan untuk bulan-bulan yang tersedia.")
-    else:
-        max_month = monthly_rent_df.idxmax()
-        max_rentals = monthly_rent_df.max()
-        st.subheader("Bulan dengan Penyewaan Tertinggi")
-        st.write(f"Bulan: {max_month} dengan jumlah penyewaan {max_rentals}")
+# Filter data berdasarkan pilihan pengguna
+filtered_data = day_df[(day_df['season'] == selected_season) & 
+                        (day_df['month'] == selected_month) &
+                        (pd.to_datetime(day_df['dateday']).dt.date >= selected_date_range[0]) &
+                        (pd.to_datetime(day_df['dateday']).dt.date <= selected_date_range[1])]
 
-    # Pertanyaan 3: Apakah cuaca berperan terhadap jumlah peminjaman sepeda?
-    weather_rent_df = day_df.groupby('weather_cond')['count'].sum().reset_index()
-    
-    # Menampilkan pengaruh cuaca
-    st.subheader("Pengaruh Cuaca terhadap Jumlah Peminjaman Sepeda")
-    st.write(weather_rent_df)
+# Membuat dan menampilkan grafik
+st.subheader("Daily Rental Count")
+daily_rent_df = create_daily_rent_df(filtered_data)
+plt.figure(figsize=(10, 5))
+sns.lineplot(data=daily_rent_df, x='dateday', y='count')
+plt.xticks(rotation=45)
+plt.title('Daily Rental Count Over Time')
+st.pyplot(plt)
 
-    # Plot pengaruh cuaca
-    plt.figure(figsize=(10, 5))
-    sns.barplot(x='weather_cond', y='count', data=weather_rent_df, palette='viridis')
-    plt.title("Jumlah Penyewaan Sepeda Berdasarkan Kondisi Cuaca")
-    plt.xlabel("Kondisi Cuaca")
-    plt.ylabel("Jumlah Penyewaan")
-    st.pyplot(plt)
+st.subheader("Monthly Rental Count")
+monthly_rent_df = create_monthly_rent_df(filtered_data)
+plt.figure(figsize=(10, 5))
+sns.barplot(x=monthly_rent_df.index, y='count', data=monthly_rent_df)
+plt.xticks(ticks=range(len(monthly_rent_df)), labels=monthly_rent_df.index, rotation=45)
+plt.title('Monthly Rental Count')
+st.pyplot(plt)
 
-# Fungsi untuk menampilkan grafik penyewaan
-def rental_graphs():
-    # Tambahkan fungsi grafik di sini sesuai kebutuhan
-    pass
+st.subheader("Seasonal Rental Count")
+season_rent_df = create_season_rent_df(day_df)
+plt.figure(figsize=(10, 5))
+sns.barplot(data=season_rent_df, x='season', y='registered', color='blue', label='Registered')
+sns.barplot(data=season_rent_df, x='season', y='casual', color='orange', label='Casual')
+plt.title('Seasonal Rental Count')
+plt.legend()
+st.pyplot(plt)
 
-# Menampilkan analisis atau grafik berdasarkan pilihan
-if options == "Analisis Penyewaan":
-    rental_analysis()
-elif options == "Grafik Penyewaan":
-    rental_graphs()
 
-# Menampilkan informasi data
-st.sidebar.subheader("Informasi Data")
-st.sidebar.write(day_df.describe())
