@@ -57,12 +57,12 @@ st.pyplot(fig)
 
 # Visualisasi distribusi penyewaan berdasarkan cuaca
 st.header("Distribusi Penyewaan Berdasarkan Kondisi Cuaca")
-weather_df = filtered_data.groupby('weather_condition').agg({
+weather_df = filtered_data.groupby('weather_cond').agg({
     'count': 'sum'
 }).reset_index()
 
 fig, ax = plt.subplots(figsize=(8, 6))
-bars = ax.bar(weather_df['weather_condition'], weather_df['count'], color=sns.color_palette("Set2", len(weather_df)))
+bars = ax.bar(weather_df['weather_cond'], weather_df['count'], color=sns.color_palette("Set2", len(weather_df)))
 ax.set_title('Total Penyewaan Berdasarkan Kondisi Cuaca')
 ax.set_xlabel('Kondisi Cuaca')
 ax.set_ylabel('Total Penyewaan')
