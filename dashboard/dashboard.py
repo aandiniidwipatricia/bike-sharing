@@ -52,6 +52,9 @@ def monthly_rentals():
         fill_value=0
     )
     
+    # Clear previous plots
+    plt.clf()
+    
     plt.figure(figsize=(10, 5))
     sns.barplot(x=monthly_rent_df.index, y=monthly_rent_df.values, palette='viridis')
     plt.title("Jumlah Penyewaan Sepeda per Bulan")
@@ -63,6 +66,9 @@ def monthly_rentals():
 def season_rentals():
     season_rent_df = day_df.groupby('season')['count'].sum().reset_index()
     
+    # Clear previous plots
+    plt.clf()
+    
     plt.figure(figsize=(10, 5))
     sns.barplot(x='season', y='count', data=season_rent_df, palette='viridis')
     plt.title("Jumlah Penyewaan Sepeda per Musim")
@@ -73,6 +79,9 @@ def season_rentals():
 # Fungsi untuk menampilkan penyewaan berdasarkan hari dalam minggu
 def weekday_rentals():
     weekday_rent_df = day_df.groupby('weekday')['count'].sum().reset_index()
+    
+    # Clear previous plots
+    plt.clf()
     
     plt.figure(figsize=(10, 5))
     sns.barplot(x='weekday', y='count', data=weekday_rent_df, palette='viridis')
@@ -92,4 +101,3 @@ elif options == "Penyewaan Berdasarkan Hari dalam Minggu":
 # Menampilkan informasi data
 st.sidebar.subheader("Informasi Data")
 st.sidebar.write(day_df.describe())
-
