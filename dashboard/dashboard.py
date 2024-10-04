@@ -15,7 +15,9 @@ day_df.rename(columns={
     'yr': 'year',
     'mnth': 'month',
     'weathersit': 'weather_cond',
-    'cnt': 'count'
+    'cnt': 'count',
+    'registered': 'registered',  
+    'casual': 'casual'           
 }, inplace=True)
 
 # Mengubah angka menjadi keterangan
@@ -52,8 +54,8 @@ def rental_analysis():
     registered_rentals = day_df['registered'].sum()
     casual_rentals = day_df['casual'].sum()
 
-    percent_registered = (registered_rentals / total_rentals) * 100
-    percent_casual = (casual_rentals / total_rentals) * 100
+    percent_registered = (registered_rentals / total_rentals) * 100 if total_rentals > 0 else 0
+    percent_casual = (casual_rentals / total_rentals) * 100 if total_rentals > 0 else 0
 
     st.subheader("Persentase Total Penyewa")
     st.write(f"Total Penyewa: {total_rentals}")
@@ -61,12 +63,19 @@ def rental_analysis():
     st.write(f"Persentase Casual User: {percent_casual:.2f}%")
 
     # Pertanyaan 2: Pada bulan apa penyewaan sepeda paling banyak?
-    monthly_rent_df = day_df.groupby('month')['count'].sum()
-    max_month = monthly_rent_df.idxmax()
-    max_rentals = monthly_rent_df.max()
-
-    st.subheader("Bulan dengan Penyewaan Tertinggi")
-    st.write(f"Bulan: {max_month} dengan jumlah penyewaan {max_rentals}")
+    monthly_rent_df = day_df.groupby('month')['count'].sum().reindex(
+        ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        fill_value=0
+    )
+    
+    # Memeriksa apakah data bulanan kosong
+    if monthly_rent_df.sum() == 0:
+        st.warning("Tidak ada data penyewaan untuk bulan-bulan yang tersedia.")
+    else:
+        max_month = monthly_rent_df.idxmax()
+        max_rentals = monthly_rent_df.max()
+        st.subheader("Bulan dengan Penyewaan Tertinggi")
+        st.write(f"Bulan: {max_month} dengan jumlah penyewaan {max_rentals}")
 
     # Pertanyaan 3: Apakah cuaca berperan terhadap jumlah peminjaman sepeda?
     weather_rent_df = day_df.groupby('weather_cond')['count'].sum().reset_index()
