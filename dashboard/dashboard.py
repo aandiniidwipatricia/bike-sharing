@@ -7,7 +7,7 @@ import streamlit as st
 sns.set(style='dark')
 
 # Menyiapkan data day_df
-day_df = pd.read_csv("dashboard/day.csv")
+day_df = pd.read_csv("dashboard/day_clean.csv")
 
 # Menghapus kolom yang tidak diperlukan
 drop_col = ['windspeed']
