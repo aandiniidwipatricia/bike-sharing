@@ -1,4 +1,4 @@
-# bike-sharing Analitycs
+# bike-sharing Analysis
 
 # Prerequisites
 Before running the application, make sure you have Python and pip installed on your system. You will also need to install some necessary packages:
@@ -8,7 +8,7 @@ Before running the application, make sure you have Python and pip installed on y
 - Matplotlib
 - Seaborn
 
-# project work cycles
+# Project work cycles
 1. Data Wrangling:
 - Gathering data
 - Assessing data
