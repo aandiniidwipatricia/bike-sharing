@@ -6,13 +6,13 @@ import seaborn as sns
 # Membaca dataset dari file CSV
 day_df = pd.read_csv('dashboard/day_clean.csv')
 
-# Sidebar
+# Sidebar untuk memilih grafik yang akan ditampilkan
 st.sidebar.title("Bike Rental Analysis")
 st.sidebar.write("Choose the analysis to display:")
 
 # Menjumlahkan semua elemen dalam kolom casual dan registered
-total_casual = sum(day_df['casual'])
-total_registered = sum(day_df['registered'])
+total_casual = day_df['casual'].sum()
+total_registered = day_df['registered'].sum()
 
 # Membuat data untuk pie plot
 data = [total_casual, total_registered]
@@ -28,49 +28,35 @@ if st.sidebar.checkbox('Show Pie Chart: Casual vs Registered'):
     st.pyplot(fig)
 
 # Mengelompokkan data berdasarkan bulan dan menjumlahkan penggunaan registered dan casual
-month_usage = day_df.groupby('month', observed=False)[['registered', 'casual']].sum().reset_index()
-
-# Menggabungkan kolom registered dan casual menjadi satu kolom
+month_usage = day_df.groupby('month')[['registered', 'casual']].sum().reset_index()
 month_usage['total_usage'] = month_usage['registered'] + month_usage['casual']
-
-fig, ax = plt.subplots(figsize=(10, 6))
 
 # Bagian Barplot Penggunaan Sepeda per Bulan
 if st.sidebar.checkbox('Show Bar Plot: Monthly Usage'):
     st.subheader('Jumlah Penyewaan Sepeda Berdasarkan Bulan')
     
     fig, ax = plt.subplots(figsize=(10, 6))
-  # Membuat barplot dengan data penggunaan total (gabungan registered dan casual)
-plt.bar(
-    month_usage['month'],
-    month_usage['total_usage'],
-    color='tab:blue'  # Warna untuk total penggunaan
-)
-
-# Menambahkan label dan judul pada plot
-plt.xlabel('Bulan', fontsize=12)
-plt.ylabel('Jumlah Penggunaan', fontsize=12)
-plt.title('Jumlah Penyewaan Sepeda Berdasarkan Bulan', fontsize=14)
-
-# Menampilkan plot
-plt.tight_layout()
-plt.show()
+    ax.bar(month_usage['month'], month_usage['total_usage'], color='tab:blue')
+    
+    ax.set_xlabel('Bulan', fontsize=12)
+    ax.set_ylabel('Jumlah Penggunaan', fontsize=12)
+    ax.set_title('Jumlah Penyewaan Sepeda Berdasarkan Bulan', fontsize=14)
+    
+    st.pyplot(fig)
 
 # Barplot Berdasarkan Kondisi Cuaca
 if st.sidebar.checkbox('Show Bar Plot: Usage by Weather Condition'):
     st.subheader('Jumlah Pengguna Sepeda berdasarkan Kondisi Cuaca')
+    
+    fig, ax = plt.subplots(figsize=(10, 6))
+    sns.barplot(x='weather_cond', y='count', data=day_df, ax=ax)
+    
+    ax.set_title('Jumlah Pengguna Sepeda berdasarkan Kondisi Cuaca', fontsize=14)
+    ax.set_xlabel('Kondisi Cuaca', fontsize=12)
+    ax.set_ylabel('Jumlah Pengguna Sepeda', fontsize=12)
+    
+    st.pyplot(fig)
 
-    plt.figure(figsize=(10,6))
-sns.barplot(
-    x='weather_cond',
-    y='count',
-    data=day_df)
-
-plt.title('Jumlah Pengguna Sepeda berdasarkan Kondisi Cuaca')
-plt.xlabel('Kondisi Cuaca',fontsize=12)
-plt.ylabel('Jumlah Pengguna Sepeda',fontsize=12)
-plt.show()
-
-# Menambahkan informasi footer
+# Menambahkan informasi footer di sidebar
 st.sidebar.write("---")
 st.sidebar.write("Dashboard created by [Andini Dwipatricia].")
