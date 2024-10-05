@@ -20,7 +20,7 @@ labels = ['Casual', 'Registered']
 
 # Bagian Pie Chart
 if st.sidebar.checkbox('Show Pie Chart: Casual vs Registered'):
-    st.subheader('Proportion of Casual vs Registered Users')
+    st.subheader('Persentase Casual vs Registered Users')
     
     # Membuat pie plot
     fig, ax = plt.subplots()
