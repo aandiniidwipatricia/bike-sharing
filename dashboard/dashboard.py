@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 # Membaca dataset dari file CSV
-day_df = pd.read_csv('dashborad/day_clean.csv')
+day_df = pd.read_csv('dashboard/day_clean.csv')
 
 # Sidebar
 st.sidebar.title("Bike Rental Analysis")
